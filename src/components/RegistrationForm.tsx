@@ -44,7 +44,7 @@ export default function RegistrationForm() {
       <div className="rounded-2xl bg-white p-6 text-center shadow sm:p-8">
         <h2 className="text-xl font-semibold text-green-700">Registration successful!</h2>
         <p className="mt-2 text-slate-600">{done.day === 0 ? 'Test registration' : `Day ${done.day}`} — your control number is</p>
-        <p className="my-3 break-all text-2xl font-bold tracking-wider text-indigo-700 sm:text-3xl">{done.controlNumber}</p>
+        <p className="my-3 break-all text-2xl font-bold tracking-wider text-brand sm:text-3xl">{done.controlNumber}</p>
         <p className="text-sm text-slate-500">Please save or screenshot this number.</p>
       </div>
     )
@@ -79,7 +79,7 @@ export default function RegistrationForm() {
       <button
         type="submit"
         disabled={submitting}
-        className="w-full rounded-xl bg-indigo-600 px-4 py-3.5 text-base font-semibold text-white active:bg-indigo-800 hover:bg-indigo-700 disabled:opacity-60"
+        className="w-full rounded-xl bg-brand px-4 py-3.5 text-base font-semibold text-white active:bg-brand-darker hover:bg-brand-dark disabled:opacity-60"
       >
         {submitting ? 'Submitting…' : 'Submit'}
       </button>

@@ -2,3 +2,10 @@
 
 html { -webkit-text-size-adjust: 100%; }
 body { padding-bottom: env(safe-area-inset-bottom); }
+
+@theme {
+  --color-brand: #0f73b7;
+  --color-brand-dark: #0c5c92;
+  --color-brand-darker: #094670;
+  --color-brand-light: #b7d9ee;
+}
