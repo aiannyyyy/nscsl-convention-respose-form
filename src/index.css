@@ -1,0 +1,4 @@
+@import "tailwindcss";
+
+html { -webkit-text-size-adjust: 100%; }
+body { padding-bottom: env(safe-area-inset-bottom); }
