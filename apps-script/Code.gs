@@ -41,15 +41,14 @@ function doPost(e) {
 
     lock.waitLock(30000);
 
-    var ss = SpreadsheetApp.openById(cfg.sheetId);
-    if (ss.getSpreadsheetTimeZone() !== TZ) ss.setSpreadsheetTimeZone(TZ); // timestamps show Manila time
-    var sheet = ss.getSheets()[0];
-    if (sheet.getLastRow() === 0) sheet.appendRow(HEADERS);
+    var sheet = SpreadsheetApp.openById(cfg.sheetId).getSheets()[0];
     var last = sheet.getLastRow();
+    if (last === 0) { sheet.appendRow(HEADERS); last = 1; }
 
-    // Same-day duplicate check (this day's sheet only).
+    // One read of columns B..H: used for the same-day duplicate check and the last control number.
+    var n = 0;
     if (last > 1) {
-      var rows = sheet.getRange(2, 2, last - 1, 7).getValues(); // columns B..H
+      var rows = sheet.getRange(2, 2, last - 1, 7).getValues();
       var email = v.email.toLowerCase(), name = normName(v.name);
       for (var i = 0; i < rows.length; i++) {
         if (String(rows[i][1]).trim().toLowerCase() === email)
@@ -59,28 +58,36 @@ function doPost(e) {
         if (normPhone(rows[i][6]) === phone)
           return json({ ok: false, code: 'DUPLICATE', message: 'This contact number is already registered today.' });
       }
-    }
-
-    // Control number restarts at 00001 each day: last control number in this day's sheet + 1.
-    var n = 0;
-    if (last > 1) {
-      var m = /(\d+)$/.exec(String(sheet.getRange(last, 2).getValue()));
+      // Control number restarts at 00001 each day: last control number in this day's sheet + 1.
+      var m = /(\d+)$/.exec(String(rows[rows.length - 1][0]));
       n = m ? parseInt(m[1], 10) : last - 1;
     }
     var control = 'NSCSL' + ('00000' + (n + 1)).slice(-5);
 
-    // Contact stored as text so the leading 0 is kept.
-    var row = last + 1;
-    sheet.getRange(row, 1).setNumberFormat('mmm d, yyyy h:mm:ss AM/PM'); // e.g. Oct 5, 2026 8:15:30 AM
-    sheet.getRange(row, 8).setNumberFormat('@');
-    sheet.getRange(row, 1, 1, 8).setValues([[now, control, v.email, v.name, v.gender, v.designation, v.place, v.contact]]);
-    SpreadsheetApp.flush();
+    // Column formats (timestamp, contact as text) are set once by setupSheets().
+    sheet.getRange(last + 1, 1, 1, 8).setValues([[now, control, v.email, v.name, v.gender, v.designation, v.place, v.contact]]);
 
     return json({ ok: true, controlNumber: control, day: cfg.day });
   } catch (err) {
     return json({ ok: false, code: 'ERROR', message: 'Something went wrong. Please try again.' });
   } finally {
     try { lock.releaseLock(); } catch (x) {}
+  }
+}
+
+/**
+ * Run ONCE from the Apps Script editor (select setupSheets > Run) after pasting IDs.
+ * Sets Manila timezone, the timestamp format and text format for Contact Number on all sheets.
+ */
+function setupSheets() {
+  var ids = {};
+  for (var k in DAYS) ids[DAYS[k].sheetId] = true;
+  for (var id in ids) {
+    var ss = SpreadsheetApp.openById(id);
+    ss.setSpreadsheetTimeZone(TZ);
+    var sh = ss.getSheets()[0];
+    sh.getRange('A2:A').setNumberFormat('mmm d, yyyy h:mm:ss AM/PM'); // e.g. Oct 5, 2026 8:15:30 AM
+    sh.getRange('H2:H').setNumberFormat('@');
   }
 }
 
